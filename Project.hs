@@ -8,6 +8,12 @@
 --        | expr '/' expr                          divide two expressions.
 --        | If expr 'then' expr 'else' expr        if else statmment 
 --
+--  type := int                                    integer value
+--        | bool                                   boolean value
+--        | float                                  floating point number
+--        | char                                   ascii character
+--        | string                                 array of chars
+--
 --  var := string type                             defining a variable
 --  
 --  test := expr '=' expr                          check if two expr are equal                 
