@@ -11,12 +11,12 @@ data Expr = Get Var
 
 data Type = Int
           | Bool
-          | Float
-          | Char
-          | String
+--          | Float
+--          | Char
+--          | String
          deriving (Eq, Show) 
 
-data Var  = Var String 
+data Var  = Var String Type Expr 
 -- Sugar         | String Type Expr
          deriving (Eq, Show)
   
