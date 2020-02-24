@@ -25,10 +25,14 @@
 --  data stmt := Set                               assigns value to a var
 --
 
+data Type = IntI    Int
+          | BoolB   Bool
+          | FloatF  Float
+          | CharC   Char
+          | StringS String
 
-data Expr = Var String Type Expr
-          -- | Get Var
-          | Lit Int
+data Expr = Var [Char] Type Expr
+          | Type T
           | Add Expr Expr
           | Mul Expr Expr
           | Div Expr Expr
@@ -48,7 +52,7 @@ data Type = TypeInt
 
 -- Defining a variable ie. from haskell to c code
 -- Var x TypeInt Lit 5 => int x = 5;
-data Var  = Var [Char] Type Expr
+-- data Var  = Var [Char] Type Expr
 -- Sugar         | String Type Expr
 --         deriving (Eq, Show)
 
