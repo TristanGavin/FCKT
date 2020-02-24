@@ -1,0 +1,21 @@
+
+data Type = TBool
+          | TInt
+          | TError
+         deriving(Eq,Show)
+
+typeOf :: Exp -> Type
+typeOf (Lit i)    = TInt
+typeOf (Add l r)  = case (typeOf l, typeOf r) of
+                      (TInt, TInt)    -> TInt
+                      _               -> TError
+typeOf (Mul l r)  = case (typeOf l, typeOf r) of
+                      (TInt, TInt)    -> TInt
+                      _               -> TError
+typeOf (Equ l r)  = case (typeOf l, typeOf r) of
+                      (TInt, TInt)    -> TBool
+                      (TBool, TBool)  -> TBool
+                      _               -> TError
+typeOf (if c t e) = case (typeOf c, typeOf t, typeOf e) of
+                      (TBool, tt, te) -> if tt == te then tt else TError
+                      _               -> TError
