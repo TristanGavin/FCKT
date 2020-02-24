@@ -25,34 +25,27 @@
 --  data stmt := Set                               assigns value to a var
 --
 
-data Type = IntI    Int
-          | BoolB   Bool
-          | FloatF  Float
-          | CharC   Char
-          | StringS String
+-- Data type that 
+data TypeVal = IntI    Int
+             | BoolB   Bool
+             | FloatF  Float
+             | CharC   Char
+             | StringS String
+             | TypeError
           
-data Expr = Get Var
-          | Type T
-          | Add Expr Expr
-          | Mul Expr Expr
-          | Div Expr Expr
-          | If Expr Expr Expr
-         deriving (Eq,Show)
+data Expr    = Get Var
+             | TypeVal Val
+             | Add Expr Expr
+             | Mul Expr Expr
+             | Div Expr Expr
+             | If Expr Expr Expr
+            deriving (Eq,Show)
 
 -- type String = [Char]
 
--- Defining our basic data types
-data VarType = TypeInt
-             | TypeBool
-             | TypeFloat
-             | TypeChar
-             | TypeString
-             | TypeError
-            deriving (Eq, Show) 
-
 -- Defining a variable ie. from haskell to c code
 -- Var x TypeInt Lit 5 => int x = 5;
-data Var  = Var [Char] Type Expr 
+data Var     = Var [Char] Type Expr 
 -- Sugar         | String Type Expr
          deriving (Eq, Show)
   
