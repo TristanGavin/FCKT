@@ -12,6 +12,7 @@ data Expr
 
 data Var
    = String 
+   | String Type Expr
   deriving (Eq, Show)
   
 data Test
