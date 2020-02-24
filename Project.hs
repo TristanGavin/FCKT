@@ -30,14 +30,14 @@ data Expr = Get Var
 
 -- type String = [Char]
 
-data Type = Int
-          | Bool
+data Type = TypeInt
+          | TypeBool
 --          | Float
 --          | Char
 --          | String
          deriving (Eq, Show) 
 
-data Var  = Var String Type Expr 
+data Var  = Var [Char] Type Expr 
 -- Sugar         | String Type Expr
          deriving (Eq, Show)
   
