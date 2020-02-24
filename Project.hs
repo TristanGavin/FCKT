@@ -7,15 +7,22 @@ data Expr = Get Var
           | If Expr Expr Expr
          deriving (Eq,Show)
 
-type String = [Char]
+-- type String = [Char]
 
-data Var  = String 
-          | String Type Expr
+data Type = Int
+          | Bool
+          | Float
+          | Char
+          | String
+         deriving (Eq, Show) 
+
+data Var  = Var String 
+-- Sugar         | String Type Expr
          deriving (Eq, Show)
   
 data Test = Equ Expr Expr
           | LTE Expr Expr
-          | GTE Expr Expr
+-- Sugar          | GTE Expr Expr
          deriving (Eq,Show)
 
 data Stmt = Set Var Expr
