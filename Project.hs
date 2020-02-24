@@ -24,19 +24,23 @@ data Expr = Get Var
           | Lit Int
           | Add Expr Expr
           | Mul Expr Expr
---        | Div Expr Expr
+          | Div Expr Expr
           | If Expr Expr Expr
          deriving (Eq,Show)
 
 -- type String = [Char]
 
+-- Defining our basic data types
 data Type = TypeInt
           | TypeBool
---          | Float
---          | Char
---          | String
+          | TypeFloat
+          | TypeChar
+          | TypeString
+          | TypeError
          deriving (Eq, Show) 
 
+-- Defining a variable ie. from haskell to c code
+-- Var x TypeInt Lit 5 => int x = 5;
 data Var  = Var [Char] Type Expr 
 -- Sugar         | String Type Expr
          deriving (Eq, Show)
