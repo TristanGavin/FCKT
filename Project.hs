@@ -70,6 +70,10 @@ expr (Value tval)       = tval
 expr (Add left right)   = case (expr left, expr right) of
                         (IntI i, IntI j)     -> IntI (i+j)
                         (FloatF i, FloatF j) -> FloatF (i+j)
+                        (CharC s, CharC t)   -> StringS [s, t]
+                        (CharC s, StringS ts)   -> StringS (s:ts)
+                        (StringS ss, CharC t)   -> StringS (ss++[t])
+                        (StringS ss, StringS ts) -> StringS (ss ++ ts)
                         _                    -> TypeError
 expr (Mul left right)   = case (expr left, expr right) of
                         (IntI i, IntI j)     -> IntI (i*j)
@@ -90,3 +94,15 @@ expr (Equ left right)   = case (expr left, expr right) of
 
 test :: Expr
 test = Var "Test" (IntI 4)
+
+hello :: Expr
+hello = Value (StringS "Hello ")
+
+world :: Expr
+world = Value (StringS "World!")
+
+char1 :: Expr
+char1 = Value (CharC 'A')
+
+char2 :: Expr
+char2 = Value (CharC 'B')
