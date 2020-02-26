@@ -72,7 +72,18 @@ data Program = Prog [Decl] Line
 type Env a = Map Var a
 
 typeExpr :: Expr -> Env Type -> Maybe Type
-typeExpr (Lit x)  _ = 
+typeExpr (Get var) env  = lookup var env
+typeExpr (Lit num)  _ = case num of
+                    Left _  -> TypeInt
+                    Right _ -> TypeFloat
+typeExpt (Str string) env = Just TypeString
+typeExpr (Add left right) env = case (typeExpr left env, typeExpr right env) of
+                    (Just TypeInt, Just TypeInt)        -> Just TypeInt
+                    (Just TypeFloat, Just TypeFloat)    -> Just TypeFloat
+                    (Just TypeString, Just TypeString)  -> Just TypeString
+                    (Just TypeFloat, Just TypeInt)      -> Just TypeFloat
+                    (Just TypeInt, Just TypeFloat)      -> Just TypeFloat
+typeExpr (Neg expr) env = typeExpr expr
 --
 -- -- Defining a variable ie. from haskell to c code
 -- -- Var x TypeInt Lit 5 => int x = 5;
