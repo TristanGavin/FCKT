@@ -137,8 +137,8 @@ typeProgram :: Program -> Bool
 typeProgram (Prog declarations line) = typeLine line (fromList declarations)
 
 -- Evaluation functions:
-evalExpr :: Expr -> Env Val -> Value
-evalExpr = Undefined
+--evalExpr :: Expr -> Env Var -> Value
+--evalExpr = Undefined
 
-evalLine :: Expr -> Env Val -> Value
-evalLine = Undefined
+--evalLine :: Expr -> Env Var -> Value
+--evalLine = Undefined
