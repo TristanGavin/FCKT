@@ -3,18 +3,18 @@ module Fckt where
 
 import Data.Map (Map,fromList,lookup,insert)
 import Data.Maybe (fromJust)
-import Prelude hiding (lookup)
+import Prelude hiding (lookup, LT)
 
 --  Number := Either (Int, Float)
---  
+--
 --  expr := var                                    gets the variable value
---        | Number                               int or float literal
---        | expr '+' expr                        add two expressions. return number or string
---        | expr '*' expr                        multiply two expression. return number
---        | expr '/' expr                        divide two expressions. return number
---        | expr '==' expr                       checks if two expressions are equal (int, float, bool, string) returns bool
---        | 'not' expr                      Not either turns a number to a negative, or negates a boolean
---        | expr '<' expr                        checks if an expression is less than another expression returns bool
+--    	| Number                               int or float literal
+--    	| expr '+' expr                        add two expressions. return number or string
+--    	| expr '*' expr                        multiply two expression. return number
+--    	| expr '/' expr                        divide two expressions. return number
+--    	| expr '==' expr                       checks if two expressions are equal (int, float, bool, string) returns bool
+--    	| 'not' expr 			         Not either turns a number to a negative, or negates a boolean
+--    	| expr '<' expr                        checks if an expression is less than another expression returns bool
 --          | str                                  String
 --
 --
@@ -29,11 +29,11 @@ import Prelude hiding (lookup)
 --          | 'string'                             array of chars
 --          | error
 --
---  var := var string                              defining a variable
---  
---  decl := var : either type expr                  declaring a variable is a tuple of a variable name, and a type or an expr
+--  var := var string                          	defining a variable
 --
---    prog := [decl] stmt                               a program is a declaration of variables followed by statments
+--  decl := var : either type expr  				declaring a variable is a tuple of a variable name, and a type or an expr
+--
+--    prog := [decl] stmt   							a program is a declaration of variables followed by statments
 
 
 type Var = String
@@ -46,6 +46,7 @@ data Type = TypeInt
           -- | TypeChar
           | TypeString
           | TypeError
+          deriving (Eq, Show)
 
 data Expr = Get Var
           | Lit Number
@@ -69,14 +70,14 @@ data Line = Set Var Expr
 type Decl = (Var, Type) -- = (Var, Either Type Expr)
 
 data Program = Prog [Decl] Line
-    deriving (Eq, Show)
+        deriving (Eq, Show)
 
 type Env a = Map Var a
 
 typeExpr :: Expr -> Env Type -> Type
 typeExpr (Get var)         env = case lookup var env of
-                          Just a  -> a
-                          Nothing -> TypeError
+                                              Just a  -> a
+                                              Nothing -> TypeError
 typeExpr (Lit num)           _ = case num of
                                     Left _  -> TypeInt
                                     Right _ -> TypeFloat
@@ -85,43 +86,43 @@ typeExpr (Add left right)  env = case (typeExpr left env, typeExpr right env) of
                                     (TypeBool, TypeBool)     -> TypeError
                                     (TypeFloat, TypeInt)     -> TypeFloat
                                     (TypeInt, TypeFloat)     -> TypeFloat
-                                    (a, a)                   -> a
-                                  (_, _)                   -> TypeError
+                                    (a, b)                   -> if a == b then a else TypeError
+                                  --  (_, _)                   -> TypeError
 typeExpr (Mul left right)  env = case (typeExpr left env, typeExpr right env) of
                                     (TypeBool, TypeBool)     -> TypeError
                                     (TypeString, TypeString) -> TypeError
                                     (TypeFloat, TypeInt)     -> TypeFloat
                                     (TypeInt, TypeFloat)     -> TypeFloat
-                                    (a, a)                   -> a
-                                  (_, _)                   -> TypeError
+                                    (a, b)                   -> if a == b then a else TypeError
+                                  --  (_, _)                   -> TypeError
 typeExpr (DivI left right) env = case (typeExpr left env, typeExpr right env) of
                                     (TypeBool, TypeBool)     -> TypeError
                                     (TypeString, TypeString) -> TypeError
                                     (TypeFloat, TypeInt)     -> TypeInt
                                     (TypeInt, TypeFloat)     -> TypeInt
-                                    (a, a)                   -> TypeInt
-                                  (_, _)                   -> TypeError
+                                    (a, b)                   -> if a == b then TypeInt else TypeError
+                                  --  (_, _)                   -> TypeError
 typeExpr (DivF left right) env = case (typeExpr left env, typeExpr right env) of
                                     (TypeBool, TypeBool)     -> TypeError
                                     (TypeString, TypeString) -> TypeError
                                     (TypeFloat, TypeInt)     -> TypeFloat
                                     (TypeInt, TypeFloat)     -> TypeFloat
-                                    (a, a)                   -> TypeFloat
-                                  (_, _)                   -> TypeError
-typeExpr (Equ left right)  env = case (typeExpr l typeExpr r) of
-                                (a, a)               -> TypeBool
+                                    (a, b)                   -> if a == b then TypeFloat else TypeError
+                                --    (_, _)                   -> TypeError
+typeExpr (Equ left right)  env = case (typeExpr left env, typeExpr right env) of
+                                    (a, b)                   -> if a == b then TypeBool else TypeError
 --could add                         (TypeInt, TypeFloat) -> TypeBool
-                                    _                    -> TypeError
-typeExpr (Neg expr)        env = typeExpr expr   -- Negating a string returns reversed string
-typeExpr (LT left right)   env = case (typeExpr left typeExpr right) of
-                                    (Just a, Just a) -> TypeBool  --strings will be len(s)<len(s1)
-typeExpr (Str string)        _ = TypeString
+                                --    _                    -> TypeError
+typeExpr (Neg expr)        env = typeExpr expr env   -- Negating a string returns reversed string
+typeExpr (LT left right)   env = case (typeExpr left env, typeExpr right env) of
+                                    (a, b) -> if a == b then TypeBool else TypeError --strings will be len(s)<len(s1)
+--typeExpr (Str string)        _ = TypeString
 
 
 
 typeLine :: Line -> Env Type -> Bool
 typeLine (Set var expr)        env = case (lookup var env, typeExpr expr env) of
-                                        (Just typevar, Typeerror) -> False
+                                        (Just typevar, TypeError) -> False
                                         (Just typevar, typeexpr)  -> typevar == typeexpr
                                         _                         -> False
 typeLine (If expr line1 line2) env = case typeExpr expr env of
@@ -129,34 +130,9 @@ typeLine (If expr line1 line2) env = case typeExpr expr env of
                                         _        -> False
 typeLine (While expr line)     env = case typeExpr expr env of
                                         TypeBool -> typeLine line env
-                                        _        -> False 
+                                        _        -> False
 typeLine (Chunk lines)         env = all (\line -> typeLine line env) lines
 --
 
 typeProgram :: Program -> Bool
 typeProgram (Prog declarations line) = typeLine line (fromList declarations)
-
-
-evalExpr :: Expr -> Env Val -> Value
-evalExpr = Undefined
-
-evalLine :: Expr -> Env Val -> Value
-evalLine = Undefined
---
--- -- Defining a variable ie. from haskell to c code
--- -- Var x TypeInt Lit 5 => int x = 5;
--- data Var     = Var [Char] Type Expr
--- -- Sugar         | String Type Expr
---          deriving (Eq, Show)
---
--- data Test = Equ Expr Expr
---           | LTE Expr Expr
--- -- Sugar          | GTE Expr Expr
---          deriving (Eq,Show)
---
--- data Stmt = Set Var Expr
---    -- | While Test Stmt
---    -- | Begin [Stmt]
---          deriving (Eq,Show)
-
-
