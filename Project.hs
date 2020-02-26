@@ -54,7 +54,7 @@ data Expr    = Get Var
              | Div Expr Expr
              | Equ Expr Expr
              | LT  Expr Expr
-             | Not Expr
+             | Neg Expr
              -- | If Expr Expr Expr
             deriving (Eq,Show)
 
@@ -64,11 +64,15 @@ data Line    = Set Var Expr
              | Chunk [Line]
              deriving (Eq, Show)
 
-type Decl    = (Var, Type)
+type Decl    = (Var, Type) -- = (Var, Either Type Expr)
 
 data Program = Prog [Decl] Line
              deriving (Eq, Show)
 
+type Env a = Map Var a
+
+typeExpr :: Expr -> Env Type -> Maybe Type
+typeExpr (Lit x)  _ = 
 --
 -- -- Defining a variable ie. from haskell to c code
 -- -- Var x TypeInt Lit 5 => int x = 5;
