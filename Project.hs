@@ -177,25 +177,78 @@ evalExpr (Neg expr) env        = case evalExpr expr env of
                                Right (Left s)                        -> Right (Left (negString s))
                                Right (Right b)                       -> Right (Right (not b))
 evalExpr (LT left right) env  = case (evalExpr left env, evalExpr right env) of
-                              (Left (Right n),  Left (Left m)  )    -> Right (Right (n < fromIntegral m))              -- Float / Int
-                              (Left (Left n),   Left (Right m) )    -> Right (Right (fromIntegral n < m))              -- Int / Float
-                              (Left (Left n),   Left (Left m)  )    -> Right (Right (n < m))               -- Int / Int
-                              (Left (Right n),  Left (Right m) )    -> Right (Right (n < m))
+                              (Left (Right n),  Left (Left m)  )    -> Right (Right (n < fromIntegral m))           -- Float < Int
+                              (Left (Left n),   Left (Right m) )    -> Right (Right (fromIntegral n < m))           -- Int < Float
+                              (Left (Left n),   Left (Left m)  )    -> Right (Right (n < m))                        -- Int < Int
+                              (Left (Right n),  Left (Right m) )    -> Right (Right (n < m))                        -- Float < Float
 
+-- Helper functions for evalExpr
 negString :: String -> String
 negString [] = []
 negString (s:ss) = (negString ss) ++ [s]
 
-evalInt :: Expr -> Env Val -> Int
-evalInt expr env = case evalExpr expr env of
-  Left (Left n) -> n
-  otherwise -> error "internal error: expected Int, received something else"
+extractInt :: Expr -> Env Val -> Int
+extractInt expr env = case evalExpr expr env of
+                              Left (Left n) -> n
+                              otherwise -> error "internal error: expected Int, received something else"
 
-evalFloat :: Expr -> Env Val -> Float
-evalFloat expr env = case evalExpr expr env of
-  Left (Right n) -> n
-  otherwise -> error "internal error: expected Float, received something else"
+extractFloat :: Expr -> Env Val -> Float
+extractFloat expr env = case evalExpr expr env of
+                              Left (Right n) -> n
+                              otherwise -> error "internal error: expected Float, received something else"
 
+extractBool :: Expr -> Env Val -> Bool
+extractBool expr env = case evalExpr expr env of
+                              Right (Right b) -> b
+                              otherwise -> error "internal error: expected Bool, received something else"
+
+extractString :: Expr -> Env Val -> String
+extractString expr env = case evalExpr expr env of
+                              Right (Left ss) -> ss
+                              otherwise -> error "internal error: expected String, received something else"
+
+
+-- Evaluating Lines
+evalLine :: Line -> Env Val -> Env Val
+evalLine (Set var expr) env    = insert var (evalExpr expr env) env
+evalLine (If expr thn els) env = if extractBool expr env
+                                 then evalLine thn env
+                                 else evalLine els env
+evalLine (While expr line) env = if extractBool expr env
+                                 then evalLine (While expr line) (evalLine line env)
+                                 else env
+evalLine (Chunk ls)        env = evalLines ls env
+
+--Helper function for evalLine, used for Chunk line
+evalLines :: [Line] -> Env Val -> Env Val
+evalLines [] env     = env
+evalLines (l:ls) env = evalLines ls (evalLine l env)
+
+evalProgram :: Program -> Env Val
+evalProgram (Prog declarations line) = evalLine line env
+  where
+    env = fromList (map (\(x,t) -> (x, init t)) declarations)
+    init TypeInt    = Left (Left 0)
+    init TypeFloat  = Left (Right 0.0)
+    init TypeString = Right (Left "")
+    init TypeBool   = Right (Right False)
+
+runProgram :: Program -> Maybe (Env Val)
+runProgram prog = if typeProgram prog then Just (evalProgram prog)
+                                      else Nothing
+
+-- Sum all the numbers from 1 to 100
+ex1 :: Program
+ex1 = Prog [("sum",TypeInt),("n",TypeInt)]
+      (Chunk [
+        Set "sum" (Lit (Left 0)),
+        Set "n" (Lit (Left 1)),
+        While (LT (Get "n") (Lit (Left 100)))
+        (Chunk [
+          Set "sum" (Add (Get "sum") (Get "n")),
+          Set "n" (Add (Get "n") (Lit (Left 1)))
+        ])
+      ])
 --evalNum (Add left right) m =
 
 -- evalExpr :: Expr -> Env a -> a
